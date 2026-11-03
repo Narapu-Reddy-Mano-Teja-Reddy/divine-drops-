@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: divine-drops-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: divine
+      POSTGRES_PASSWORD: divine_drops_dev
+      POSTGRES_DB: divine_drops
+    ports:
+      - "5432:5432"
+    volumes:
+      - divine_drops_pg:/var/lib/postgresql/data
+
+volumes:
+  divine_drops_pg:

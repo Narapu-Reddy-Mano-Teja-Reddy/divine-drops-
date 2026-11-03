@@ -1,0 +1,177 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH_ON_DELIVERY
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  fullName     String
+  email        String   @unique
+  phone        String?
+  passwordHash String
+  role         Role     @default(CUSTOMER)
+  createdAt    DateTime @default(now())
+  reviews      Review[]
+}
+
+model Category {
+  id       String    @id @default(cuid())
+  slug     String    @unique
+  nameEn   String
+  nameAr   String
+  image    String?
+  isActive Boolean   @default(true)
+  products Product[]
+}
+
+model Product {
+  id            String      @id @default(cuid())
+  nameEn        String
+  nameAr        String
+  descriptionEn String
+  descriptionAr String
+  price         Decimal     @db.Decimal(10, 3)
+  discountPrice Decimal?    @db.Decimal(10, 3)
+  categoryId    String
+  category      Category    @relation(fields: [categoryId], references: [id])
+  images        String[]
+  sizes         String[]
+  colours       String[]
+  stock         Int         @default(0)
+  sku           String      @unique
+  isFeatured    Boolean     @default(false)
+  isBestSeller  Boolean     @default(false)
+  isNewArrival  Boolean     @default(false)
+  isActive      Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  orderItems    OrderItem[]
+  reviews       Review[]
+
+  @@index([categoryId])
+  @@index([isActive, isFeatured])
+}
+
+model Order {
+  id                   String         @id @default(cuid())
+  orderNumber          String         @unique
+  customerName         String
+  customerPhone        String
+  customerEmail        String?
+  governorate          String
+  area                 String
+  block                String
+  street               String
+  buildingNumber       String
+  deliveryInstructions String?
+  subtotal             Decimal        @db.Decimal(10, 3)
+  deliveryFee          Decimal        @db.Decimal(10, 3)
+  total                Decimal        @db.Decimal(10, 3)
+  currency             String         @default("KWD")
+  orderStatus          OrderStatus    @default(PENDING)
+  paymentMethod        PaymentMethod  @default(CASH_ON_DELIVERY)
+  paymentStatus        PaymentStatus  @default(UNPAID)
+  adminNotes           String?
+  inventoryAdjusted    Boolean        @default(false)
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  items                OrderItem[]
+
+  @@index([orderStatus])
+  @@index([customerPhone])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id            String  @id @default(cuid())
+  orderId       String
+  order         Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product @relation(fields: [productId], references: [id])
+  productNameEn String
+  productNameAr String
+  quantity      Int
+  selectedSize  String?
+  selectedColour String?
+  unitPrice     Decimal @db.Decimal(10, 3)
+  subtotal      Decimal @db.Decimal(10, 3)
+}
+
+model Blog {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  titleEn     String
+  titleAr     String
+  excerptEn   String
+  excerptAr   String
+  contentEn   String
+  contentAr   String
+  coverImage  String
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  productId  String?
+  product    Product? @relation(fields: [productId], references: [id])
+  customerName String
+  rating     Int
+  commentEn  String
+  commentAr  String
+  isApproved Boolean  @default(true)
+  createdAt  DateTime @default(now())
+}
+
+model Coupon {
+  id            String       @id @default(cuid())
+  code          String       @unique
+  discountType  DiscountType
+  discountValue Decimal      @db.Decimal(10, 3)
+  expiresAt     DateTime?
+  isActive      Boolean      @default(true)
+}
+
+model Setting {
+  key   String @id
+  value String
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
