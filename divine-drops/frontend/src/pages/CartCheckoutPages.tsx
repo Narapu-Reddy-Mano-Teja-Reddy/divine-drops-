@@ -1,6 +1,7 @@
 import { type FormEvent, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { createOrder, fetchOrder, getWishlistProducts, GOVERNORATES, login, money, register } from "../api/client";
+import { createOrder, fetchOrder, GOVERNORATES, login, money, register } from "../api/client";
+import { getWishlistProducts } from "../context/store";
 import { ProductCard } from "../components/ProductCard";
 import { useAuth, useCart, useI18n } from "../context/store";
 import type { Order } from "../types";
